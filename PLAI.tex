@@ -1,0 +1,1616 @@
+\documentclass{book}
+
+%% ODER: format ==         = "\mathrel{==}"
+%% ODER: format /=         = "\neq "
+%
+%
+\makeatletter
+\@ifundefined{lhs2tex.lhs2tex.sty.read}%
+  {\@namedef{lhs2tex.lhs2tex.sty.read}{}%
+   \newcommand\SkipToFmtEnd{}%
+   \newcommand\EndFmtInput{}%
+   \long\def\SkipToFmtEnd#1\EndFmtInput{}%
+  }\SkipToFmtEnd
+
+\newcommand\ReadOnlyOnce[1]{\@ifundefined{#1}{\@namedef{#1}{}}\SkipToFmtEnd}
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\DeclareFontFamily{OT1}{cmtex}{}
+\DeclareFontShape{OT1}{cmtex}{m}{n}
+  {<5><6><7><8>cmtex8
+   <9>cmtex9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmtex10}{}
+\DeclareFontShape{OT1}{cmtex}{m}{it}
+  {<-> ssub * cmtt/m/it}{}
+\newcommand{\texfamily}{\fontfamily{cmtex}\selectfont}
+\DeclareFontShape{OT1}{cmtt}{bx}{n}
+  {<5><6><7><8>cmtt8
+   <9>cmbtt9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmbtt10}{}
+\DeclareFontShape{OT1}{cmtex}{bx}{n}
+  {<-> ssub * cmtt/bx/n}{}
+\newcommand{\tex}[1]{\text{\texfamily#1}}	% NEU
+
+\newcommand{\Sp}{\hskip.33334em\relax}
+
+
+\newcommand{\Conid}[1]{\mathit{#1}}
+\newcommand{\Varid}[1]{\mathit{#1}}
+\newcommand{\anonymous}{\kern0.06em \vbox{\hrule\@width.5em}}
+\newcommand{\plus}{\mathbin{+\!\!\!+}}
+\newcommand{\bind}{\mathbin{>\!\!\!>\mkern-6.7mu=}}
+\newcommand{\rbind}{\mathbin{=\mkern-6.7mu<\!\!\!<}}% suggested by Neil Mitchell
+\newcommand{\sequ}{\mathbin{>\!\!\!>}}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\usepackage{polytable}
+
+%mathindent has to be defined
+\@ifundefined{mathindent}%
+  {\newdimen\mathindent\mathindent\leftmargini}%
+  {}%
+
+\def\resethooks{%
+  \global\let\SaveRestoreHook\empty
+  \global\let\ColumnHook\empty}
+\newcommand*{\savecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\savecolumns[#1]}}
+\newcommand*{\restorecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\restorecolumns[#1]}}
+\newcommand*{\aligncolumn}[2]%
+  {\g@addto@macro\ColumnHook{\column{#1}{#2}}}
+
+\resethooks
+
+\newcommand{\onelinecommentchars}{\quad-{}- }
+\newcommand{\commentbeginchars}{\enskip\{-}
+\newcommand{\commentendchars}{-\}\enskip}
+
+\newcommand{\visiblecomments}{%
+  \let\onelinecomment=\onelinecommentchars
+  \let\commentbegin=\commentbeginchars
+  \let\commentend=\commentendchars}
+
+\newcommand{\invisiblecomments}{%
+  \let\onelinecomment=\empty
+  \let\commentbegin=\empty
+  \let\commentend=\empty}
+
+\visiblecomments
+
+\newlength{\blanklineskip}
+\setlength{\blanklineskip}{0.66084ex}
+
+\newcommand{\hsindent}[1]{\quad}% default is fixed indentation
+\let\hspre\empty
+\let\hspost\empty
+\newcommand{\NB}{\textbf{NB}}
+\newcommand{\Todo}[1]{$\langle$\textbf{To do:}~#1$\rangle$}
+
+\EndFmtInput
+\makeatother
+%
+%
+%
+%
+%
+%
+% This package provides two environments suitable to take the place
+% of hscode, called "plainhscode" and "arrayhscode". 
+%
+% The plain environment surrounds each code block by vertical space,
+% and it uses \abovedisplayskip and \belowdisplayskip to get spacing
+% similar to formulas. Note that if these dimensions are changed,
+% the spacing around displayed math formulas changes as well.
+% All code is indented using \leftskip.
+%
+% Changed 19.08.2004 to reflect changes in colorcode. Should work with
+% CodeGroup.sty.
+%
+\ReadOnlyOnce{polycode.fmt}%
+\makeatletter
+
+\newcommand{\hsnewpar}[1]%
+  {{\parskip=0pt\parindent=0pt\par\vskip #1\noindent}}
+
+% can be used, for instance, to redefine the code size, by setting the
+% command to \small or something alike
+\newcommand{\hscodestyle}{}
+
+% The command \sethscode can be used to switch the code formatting
+% behaviour by mapping the hscode environment in the subst directive
+% to a new LaTeX environment.
+
+\newcommand{\sethscode}[1]%
+  {\expandafter\let\expandafter\hscode\csname #1\endcsname
+   \expandafter\let\expandafter\endhscode\csname end#1\endcsname}
+
+% "compatibility" mode restores the non-polycode.fmt layout.
+
+\newenvironment{compathscode}%
+  {\par\noindent
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed\)%
+   \par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\compaths}{\sethscode{compathscode}}
+
+% "plain" mode is the proposed default.
+% It should now work with \centering.
+% This required some changes. The old version
+% is still available for reference as oldplainhscode.
+
+\newenvironment{plainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newenvironment{oldplainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+% Here, we make plainhscode the default environment.
+
+\newcommand{\plainhs}{\sethscode{plainhscode}}
+\newcommand{\oldplainhs}{\sethscode{oldplainhscode}}
+\plainhs
+
+% The arrayhscode is like plain, but makes use of polytable's
+% parray environment which disallows page breaks in code blocks.
+
+\newenvironment{arrayhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\parray}%
+  {\endparray\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newcommand{\arrayhs}{\sethscode{arrayhscode}}
+
+% The mathhscode environment also makes use of polytable's parray 
+% environment. It is supposed to be used only inside math mode 
+% (I used it to typeset the type rules in my thesis).
+
+\newenvironment{mathhscode}%
+  {\parray}{\endparray}
+
+\newcommand{\mathhs}{\sethscode{mathhscode}}
+
+% texths is similar to mathhs, but works in text mode.
+
+\newenvironment{texthscode}%
+  {\(\parray}{\endparray\)}
+
+\newcommand{\texths}{\sethscode{texthscode}}
+
+% The framed environment places code in a framed box.
+
+\def\codeframewidth{\arrayrulewidth}
+\RequirePackage{calc}
+
+\newenvironment{framedhscode}%
+  {\parskip=\abovedisplayskip\par\noindent
+   \hscodestyle
+   \arrayrulewidth=\codeframewidth
+   \tabular{@{}|p{\linewidth-2\arraycolsep-2\arrayrulewidth-2pt}|@{}}%
+   \hline\framedhslinecorrect\\{-1.5ex}%
+   \let\endoflinesave=\\
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \framedhslinecorrect\endoflinesave{.5ex}\hline
+   \endtabular
+   \parskip=\belowdisplayskip\par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\framedhslinecorrect}[2]%
+  {#1[#2]}
+
+\newcommand{\framedhs}{\sethscode{framedhscode}}
+
+% The inlinehscode environment is an experimental environment
+% that can be used to typeset displayed code inline.
+
+\newenvironment{inlinehscode}%
+  {\(\def\column##1##2{}%
+   \let\>\undefined\let\<\undefined\let\\\undefined
+   \newcommand\>[1][]{}\newcommand\<[1][]{}\newcommand\\[1][]{}%
+   \def\fromto##1##2##3{##3}%
+   \def\nextline{}}{\) }%
+
+\newcommand{\inlinehs}{\sethscode{inlinehscode}}
+
+% The joincode environment is a separate environment that
+% can be used to surround and thereby connect multiple code
+% blocks.
+
+\newenvironment{joincode}%
+  {\let\orighscode=\hscode
+   \let\origendhscode=\endhscode
+   \def\endhscode{\def\hscode{\endgroup\def\@currenvir{hscode}\\}\begingroup}
+   %\let\SaveRestoreHook=\empty
+   %\let\ColumnHook=\empty
+   %\let\resethooks=\empty
+   \orighscode\def\hscode{\endgroup\def\@currenvir{hscode}}}%
+  {\origendhscode
+   \global\let\hscode=\orighscode
+   \global\let\endhscode=\origendhscode}%
+
+\makeatother
+\EndFmtInput
+%
+
+\usepackage{xspace}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{exercise}
+\usepackage{syntax} 
+
+\pgfplotsset{compat=newest}
+\usetikzlibrary{shapes.geometric,arrows,fit,matrix,positioning}
+\tikzset
+{
+    treenode/.style = {circle, draw=black, align=center, minimum size=1cm},
+    subtree/.style  = {isosceles triangle, draw=black, align=center, minimum height=0.5cm, minimum width=1cm, shape border rotate=90, anchor=north}
+}
+
+
+\newcounter{haskell}[chapter]
+\newenvironment{haskell}[1][]{\refstepcounter{haskell}\par\medskip
+   \noindent \textbf{Example~\thehaskell. #1} \rmfamily}{
+\begin{hscode}\SaveRestoreHook
+\ColumnHook
+\end{hscode}\resethooks
+}
+
+\usepackage{amssymb,amsmath}
+
+\usepackage{mdframed}
+\usepackage{hyperref}
+
+\global\mdfdefinestyle{default}{%
+  linecolor=black,linewidth=0.5pt,
+  backgroundcolor=gray!10
+}
+
+\usepackage[
+    type={CC},
+    modifier={by-nc-sa},
+    version={4.0},
+]{doclicense}
+
+\newcommand{\bnf}{\texttt{BNF}}
+\newcommand{\lae}{\textsc{LAE}\xspace}
+\renewcommand{\ae}{\textsc{AE}\xspace}
+\renewcommand{\emph}[1]{{\color{blue}\textit{#1}}}
+
+\input{definition.tex}
+
+\title{A Short Introduction to Programming 
+Languages: Application and Interpretation} 
+
+\author{Rodrigo Bonif\'{a}cio, Luisa Fantin, Gabriel Lob\~{a}o, and Jo\~{a}o Sousa}
+
+\begin{document}
+
+\maketitle
+
+
+\chapter*{Preface} 
+
+This book presents a short introduction to 
+Programming Languages: Application and 
+Interpretation (the PLAI book from Shriram Krishnamurthi). 
+Actually, it is a derivative of the aforementioned 
+work, licensed under Creative Commons 
+Attribution-NonCommercial-ShareAlike 3.0 
+United States License. We selected several chapters 
+from the original book, condensed them a bit, and 
+migrated all Scheme source code to Haskell. 
+Here our goal is to make an introduction to 
+programming language operational 
+semantics, which might help us to present 
+related concepts to our Programming Languages 
+students at University of 
+Bras\'{i}lia. The original version of this work 
+can be found at \url{www.plai.org/}. 
+
+ 
+
+\doclicenseThis
+\chapter{Interpreting Arithmetic and Substitution}
+
+This chapter summarizes some relevants 
+aspects of the first three chapters of the 
+original version of this book, presents a 
+small discussion about parsers and abstract syntax 
+trees, evaluating simple arithmetic expressions, 
+and one of the most fundamental aspects of the 
+first part of this book: substitution. The reader 
+should spend special dedication to this aspect, 
+once it will be further explored in other chapters of this 
+book. 
+
+\section{A simple Arithmetic Expression Language} 
+
+Having established a handle on parsing, 
+which addresses syntax, we now begin to 
+study semantics. We will study a language 
+with only numbers, addition, and subtraction, 
+and futher assume both these operations 
+are binary. This is indeed a very rudimentary 
+exercise, but that's the point. By picking 
+something you know well, we can 
+focus on the mechanics. Once you have a feel for the 
+mechanics, we can use the same methods 
+to explore languages you have nevever seen before. 
+
+The interpreter has the following contract and purpose: 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{50}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{module}\;\Conid{AE}\;\mathbf{where}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{import}\;\Conid{\Conid{Test}.HUnit}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mbox{\onelinecomment  consumes an AE and computes the corresponding number}{}\<[E]%
+\\
+\>[B]{}\Varid{calc}\mathbin{::}\Conid{AE}\to \Conid{Integer}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mbox{\onelinecomment  some HUnit test cases to better understand the calc semantics}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{exp1},\Varid{exp2}\mathbin{::}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\Varid{exp1}\mathrel{=}\text{\tt \char34 Num~3\char34}{}\<[E]%
+\\
+\>[B]{}\Varid{exp2}\mathrel{=}\text{\tt \char34 Add~(Num~3)~(Sub~(Num~10)~(Num~5))\char34}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{tc1}\mathrel{=}\Conid{TestCase}\;(\Varid{assertEqual}\;\text{\tt \char34 tc01\char34}\;(\Varid{calc}\;(\Varid{parse}\;{}\<[50]%
+\>[50]{}\Varid{exp1}))\;\mathrm{3}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{tc2}\mathrel{=}\Conid{TestCase}\;(\Varid{assertEqual}\;\text{\tt \char34 tc02\char34}\;(\Varid{calc}\;(\Varid{parse}\;\Varid{exp2}))\;\mathrm{8}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+An arithmetic expression \texttt{AE} might be represented 
+using a notation named \emph{Backus-Naur Form} (BNF), after
+two early programming languages pioneers. A BNF 
+description of rudimentary arithmetic looks like: 
+
+\begin{tabbing}\tt
+~~\char60{}AE\char62{}~\char58{}\char58{}\char61{}~Num~\char60{}int\char62{}~\\
+\tt ~~~~~~~~~\char124{}~Add~\char60{}AE\char62{}~\char60{}AE\char62{}~\\
+\tt ~~~~~~~~~\char124{}~Sub~\char60{}AE\char62{}~\char60{}AE\char62{}~
+\end{tabbing}
+
+The \texttt{<AE>} in the \textsc{BNF} is calleed a non-terminal, 
+which means we can rewrite it as one of the things on 
+the right-hand side. Read \texttt{::=} as ``can be rewritten as''. 
+Each line presents one more choice, called a 
+\emph{production}. Everything in a production that isn't enclosed 
+in the symbos \texttt{< \ldots >} is literal syntax. In Haskell, 
+as well as in other programming languages, it is quite easy to 
+represent an abstract representation for arithmetic expressions 
+based on a \textsc{BNF} specification. Abstract representations 
+are independent of our choices to concretely represent arithmetic 
+expressions (or other more advanced programming 
+language constructs) as strings of characters. For instance, we might 
+express an expression 3 + (10 - 5) in many different ways, for instance: 
+
+\begin{tabbing}\tt
+~\char43{}~3~\char40{}\char45{}~10~5\char41{}\\
+\tt ~\char43{}~\char40{}3\char44{}~\char45{}\char40{}10\char44{}~5\char41{}\char41{}\\
+\tt ~add\char40{}3\char44{}~sub\char40{}10\char44{}~5\char41{}\char41{}
+\end{tabbing}
+
+All these forms of expressing the same arithmetic expression 
+could be \emph{parsed} to generate the same abstract 
+syntax tree (a possible alternative is shown in Figure~\ref{ast:ae}). That is, 
+after choosing an interesting concrete syntax for a language, 
+a parser reads a program written according to the concrete 
+syntax and ouputs an instance of an abstract syntax tree (AST). We will 
+not give to much attention to concrete syntaxes and parsers in this 
+book. Here, we are mostly intereted in the semantics of a programming 
+language (in this case, expressed in terms of the \texttt{calc} 
+function). We also have to define a \emph{data type} for representing the 
+\texttt{AE} AST using Haskell (see Listing~\ref{}). Note 
+how similar with the \textsc{BNF} such a data representation 
+is (\texttt{Integer} is a primitive data type in Haskell). In this particular 
+case, we define a new data type (named \texttt{AE}) with three data constructors: 
+\texttt{Num}, \texttt{Add} and \texttt{Sub}. The first constructor expects an 
+Integer as argument, while the other two constructors expect two sub-expressions 
+of type \texttt{AE}. Let's ignore some details about the \texttt{deriving} directive 
+right now, though it explains to the Haskell compiler / interpreter to automatically 
+implement support for reading an \texttt{AE} from a string, to show an instance of 
+an \texttt{AE} as a string, and to infer the semantics of the \texttt{==} operator 
+for the \texttt{AE} data type.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{AE}\mathrel{=}\Conid{Num}\;\Conid{Integer}{}\<[E]%
+\\
+\>[B]{}\hsindent{9}{}\<[9]%
+\>[9]{}\mid \Conid{Add}\;\Conid{AE}\;\Conid{AE}{}\<[E]%
+\\
+\>[B]{}\hsindent{9}{}\<[9]%
+\>[9]{}\mid \Conid{Sub}\;\Conid{AE}\;\Conid{AE}{}\<[E]%
+\\
+\>[B]{}\mathbf{deriving}\;(\Conid{Read},\Conid{Show},\Conid{Eq}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+The \texttt{calc} function we previously specified must be defined to each 
+\texttt{AE} construct (or \emph{term}, in some references). Note that this 
+is an indutive definition on the constructs of \texttt{AE}. The first definition 
+is the base case, and states that \texttt{calc} for a given \texttt{Num n} 
+is \texttt{n}. In the other situations, we have to first evaluate 
+both \texttt{lhs} (left-hand side) and \texttt{rhs} (right-hand side) before 
+calculating the corresponding addition or subtraction. 
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{calc}\;(\Conid{Num}\;\Varid{n})\mathrel{=}\Varid{n}{}\<[E]%
+\\
+\>[B]{}\Varid{calc}\;(\Conid{Add}\;\Varid{lhs}\;\Varid{rhs})\mathrel{=}\Varid{calc}\;\Varid{lhs}\mathbin{+}\Varid{calc}\;\Varid{rhs}{}\<[E]%
+\\
+\>[B]{}\Varid{calc}\;(\Conid{Sub}\;\Varid{lhs}\;\Varid{rhs})\mathrel{=}\Varid{calc}\;\Varid{lhs}\mathbin{-}\Varid{calc}\;\Varid{rhs}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{parse}\mathbin{::}\Conid{String}\to \Conid{AE}{}\<[E]%
+\\
+\>[B]{}\Varid{parse}\;\Varid{s}\mathrel{=}\Varid{read}\;\Varid{s}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Running the test suite helps validate our interpreter (the \texttt{calc} function). 
+For instance, if you open the GHCi on the terminal, you can open this module and 
+run the test suites, executing in the prompt \texttt{runTestTT tc1} and \texttt{runTestTT tc2}. 
+The results must be as follows. 
+
+\begin{mdframed}[style=default]
+\noindent \ensuremath{\Conid{Counts}\;\{\mskip1.5mu \Varid{cases}\mathrel{=}\mathrm{1},\Varid{tried}\mathrel{=}\mathrm{1},\Varid{errors}\mathrel{=}\mathrm{0},\Varid{failures}\mathrel{=}\mathrm{0}\mskip1.5mu\}} 
+
+\noindent \ensuremath{\Conid{Counts}\;\{\mskip1.5mu \Varid{cases}\mathrel{=}\mathrm{1},\Varid{tried}\mathrel{=}\mathrm{1},\Varid{errors}\mathrel{=}\mathrm{0},\Varid{failures}\mathrel{=}\mathrm{0}\mskip1.5mu\}} 
+\end{mdframed} 
+
+What we have seen is actually quite remarkable, though its full power may not yet 
+be apparent. We have shown that a programming language with just the ability to 
+represent structured data can represent one of the most interesting forms of 
+data, namely programs themselves. That is, we have just written a program that consumes 
+programs (in the \texttt{AE} language); perhaps we can even write programs that 
+generate programs. The former is the foundation for an interpreter semantics, while the later 
+is the foundation for a compiler. This same idea---but with a much more primitive 
+language, namely arithmetic, and a much poorer collection of data, namely 
+just numbers---is at the heart of the proof of G\"{o}del's Theorem.  
+
+\input{c2/ae-ast.tex}
+
+\section{Substitution} 
+
+
+Even in a simple arithmetic language, we 
+sometimes encounter repeated expressions. 
+For instance, the Newtonian formula for the 
+gravitational force between two objects has a
+squared term in the denominator. We would 
+like to avoid redundant expressions: they are 
+annoying to repeat, we might make a mistake 
+while repeating them, and evaluating them 
+wastes computational cycles. 
+
+The normal way to avoid redundancy is to introduce 
+an identifier.\footnote{As the authors of Concrete Mathematics 
+say: ``Name and conquer''.} As its name suggests, 
+an identifier names, or identifies, ({\bf the value of}) 
+an expression.  We can then use its name in place of 
+the larger computation. Identifiers may sound exotic, 
+but you are use to them in every programming language 
+you have used so far: they are called \emph{variables}. 
+We choose not to call them that because the term
+``variable'' is semantically 
+charged: it implies that the value associated with the identifier 
+can change (\emph{vary}). Since our language initially 
+won't offer any way of changing the associated value, 
+we use the more conservative term ``identifier''. 
+For now, they are therefore just names for computed constants. 
+
+Let's first write a few sample programs that use identifiers, 
+inventing notation as we go along: 
+
+\begin{tabbing}\tt
+~~Let~x~\char61{}~5~\char43{}~5~in~x~\char43{}~x
+\end{tabbing}
+
+We want this to evaluate to 20. Here is more elaborate example: 
+
+\begin{tabbing}\tt
+~~Let~x~\char61{}~5~\char43{}~5~\\
+\tt ~~~in~Let~y~\char61{}~x~\char45{}~3~\\
+\tt ~~~~in~y~\char43{}~y~\\
+\tt ~\\
+\tt ~\char61{}~Let~x~\char61{}~10~in~Let~y~\char61{}~x~\char45{}~3~in~y~\char43{}~y~~~~\char91{}\char43{}~operation\char93{}\\
+\tt ~\char61{}~Let~y~\char61{}~10~\char45{}~3~in~y~\char43{}~y~~~~~~~~~~~~~~~~~\char91{}substitution\char93{}~\\
+\tt ~\char61{}~Let~y~\char61{}~7~in~y~\char43{}~y~~~~~~~~~~~~~~~~~~~~~~\char91{}\char45{}~operation\char93{}~\\
+\tt ~\char61{}~7~\char43{}~7~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\char91{}substitution\char93{}~\\
+\tt ~\char61{}~14~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\char91{}\char43{}~operation\char93{}~
+\end{tabbing}
+
+En passant, notice that the act of reducing an expression to 
+a value requires more than just substitution; 
+indeed, it is an interleaving of substitution and calculation 
+steps. Furthermore, when we have completed 
+substitution we implicitly ``descend''into the inner expression to 
+continue calculating. Now, let's define the language more 
+formally. To honor the addition of identifiers, we will give 
+our language a new name: \lae, short for 
+``'Let with arithmetic expressions''. Its \textsc{BNF} is: 
+
+\begin{tabbing}\tt
+~~\char60{}LAE\char62{}~\char58{}\char58{}\char61{}~Int~Num~\\
+\tt ~~~~~~~~~~\char124{}~Add~\char60{}LAE\char62{}~\char60{}LAE\char62{}\\
+\tt ~~~~~~~~~~\char124{}~Sub~\char60{}LAE\char62{}~\char60{}LAE\char62{}~\\
+\tt ~~~~~~~~~~\char124{}~Let~\char60{}Id\char62{}~\char60{}LAE\char62{}~\char60{}LAE\char62{}\\
+\tt ~~~~~~~~~~\char124{}~Ref~\char60{}Id\char62{}
+\end{tabbing}
+
+Notice that we have had to add two rules to the \textsc{BNF}: 
+one for associating values with identifiers and 
+another for actually using the identifiers. The nonterminal 
+\texttt{<Id>} stands for some suitable syntax for identifiers 
+(usually a sequence of alphanumeric characters). 
+
+To write programs that process \lae terms, we need a data 
+definition to represent those terms. Most 
+of \lae carries over unchanged from \ae, but we must pick 
+some concrete representation for identifiers. 
+Fortunately, Haskell has a primitive type called String, which 
+server this role admirably. Nevertheless, it 
+is also interesting to introduce a new name 
+to the String type, to make clear the purpose of 
+identifying expressions. We choose the name \texttt{Id} 
+as synonymous to the \texttt{String} data type. Therefore, 
+the data definition in Haskell is
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{module}\;\Conid{LAE}\;\mathbf{where}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{import}\;\Conid{\Conid{Test}.HUnit}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{type}\;\Conid{Id}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Value}\mathrel{=}\Conid{Integer}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{data}\;\Conid{LAE}\mathrel{=}\Conid{Num}\;\Conid{Integer}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mid \Conid{Add}\;\Conid{LAE}\;\Conid{LAE}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mid \Conid{Sub}\;\Conid{LAE}\;\Conid{LAE}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mid \Conid{Let}\;\Conid{Id}\;\Conid{LAE}\;\Conid{LAE}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mid \Conid{Ref}\;\Conid{Id}{}\<[E]%
+\\
+\>[B]{}\mathbf{deriving}\;(\Conid{Read},\Conid{Show},\Conid{Eq}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+The \texttt{Let} data constructor expects 
+three arguments: the name of the identifier, 
+the named expression associated to the identifier, 
+and the \texttt{Let} expression body. The \texttt{Ref} 
+data constructor expects only one argument: the name 
+of the identifier. 
+
+\subsection{Defining Substitution}
+
+Without ceremony, we use the concept of 
+\emph{substitution} to explain how the 
+\texttt{Let} construct works. We are able to do 
+this because substitution is not unique to 
+\texttt{Let}: we have studied it for years 
+in algebra courses, because that is what 
+happens when we pass arguments to 
+functions. For instance, let 
+$f(x,y) = x^3 + y^3$. Then 
+
+\begin{eqnarray*}
+f(12,1) & = & 12^3 + 1^3 = 1728 + 1 = 1729 \\ 
+f(10,9) & = & 10^3 + 9^3 = 1000 + 729 = 1729   
+\end{eqnarray*} 
+
+Nevertheless, it is a good idea to pin down 
+this operation precisely. 
+
+Let's make sure we understand what we are trying 
+to define. We want a crisp description of the 
+process of substitution, namely what happens when 
+we replace an identifier (such as $x$ or \texttt{x}) with 
+a value (such as 12 or \texttt{5}) in an expression 
+(such as $x^3 + y^3$ or \texttt{x + x}). 
+
+Recall from the sequence of reductions above that 
+substitution is a part of, but not the 
+same as, calculating an answer for an expression 
+that has identifiers. Looking back at the 
+sequence of steps in the 
+evaluation example above, some of them invoke substitution 
+while the rest are calculation as defined for \ae. 
+For now, we are first going to pin down substitution. 
+Once we have done that, we will revisit the related 
+question of calculation. But it will take us a few tries 
+to get substitution right! 
+
+\begin{mydef}[Substitution]{def:substitution}
+Given an expression like \texttt{Let $x$ = $exp_1$ in $exp_2$},
+the components of the \texttt{Let} expression are the 
+identifier \texttt{$x$}, the named expression \texttt{$exp_1$}, 
+and expression body \texttt{$exp_2$}. To substitute 
+the identifier \texttt{$x$} in the expression body \texttt{$exp_1$} 
+with the named expression \texttt{$exp_2$}, replace all identifiers 
+in the expression body that have the name \texttt{$x$} with the 
+named expression (in this case \texttt{$exp_1$}). 
+\end{mydef}
+
+Beginning with the program
+
+\texttt{Let x = 5 in x + x}
+
+\noindent 
+we will use substitution to replace the identifier 
+\texttt{x} with the named expression it is bound 
+to (\texttt{5}). The above definition of substitution 
+certainly does the trick: after substitution, we 
+get 
+
+\texttt{Let x = 5 in 5 + 5} 
+
+\noindent
+
+as we would want. Likewise, it correctly substitutes 
+when there are no instances of the identifier. For instance, 
+
+\texttt{Let x = 5 in 10 + 4} 
+
+\noindent the definition of substitution leads 
+to \texttt{Let x = 5 in 10 + 4}, since there are 
+no instances of x in the expression body. Now consider 
+
+\texttt{Let x = 5 in x + Let x = 3 in 10}
+
+\noindent 
+
+The rules reduce this to \texttt{Let x = 5 in 5 + Let 5 = 3 in 10}. 
+Huh? Our substitution rule converted a perfectly reasonable program 
+(whose value is 15) into one that 
+isn't even syntactically legal, i.e., it would be rejected by a parser 
+because the program contains a \texttt{5} where the 
+the \bnf tells us to expect an identifier. We definitely don't 
+want substitution to have such an effect! It's 
+obvious that the substitution algorithm is too naive. To state 
+the problem with the algorithm precisely, though, we 
+need to introduce a little terminology. 
+
+
+\begin{mydef}[Binding Instance]{def:bindingInstance}
+A binding instance of an identifier is the 
+occurrence of the identifier that gives it its 
+value. In \lae, the \texttt{Id} position of a 
+\texttt{Let} expression is the only binding instance. 
+\end{mydef}
+
+\begin{mydef}[Scope]{def:scope}
+The scope of a binding instance is the region 
+of a program text in which instances of 
+the identifier {\bf refer to the value} bound 
+by the binding instance. 
+\end{mydef}
+
+\begin{mydef}[Bound Instance]{def:boundInstance}
+An identifier is bound if it is contained within the 
+scope of a binding instance of its name. 
+\end{mydef}
+
+\begin{mydef}[Free Instance]{def:freeInstance}
+An identifier not contained in the scope of any 
+binding instance of its name is said to be 
+free. 
+\end{mydef}
+
+With this terminology in hand, we can now state 
+the problem with the first definition of 
+substitution more precisely: it failed to distinguish 
+between bound instances (which should be substituted) 
+and binding instances (which should not). This leads 
+to a refined notion of substitution. 
+
+\begin{mydef}[Substitution, take 2]{def:substitution2}
+Given an expression like $Let\ x =\ exp_1\ in\ exp_2$,
+the components of the \texttt{Let} expression are the 
+identifier \texttt{$x$}, the named expression \texttt{$exp_1$}, 
+and expression body \texttt{$exp_2$}. To substitute 
+the identifier \texttt{$x$} in the expression body \texttt{$exp_1$} 
+with the named expression \texttt{$exp_2$}, replace all identifiers 
+in the expression body which are not binding instances and 
+that have the name \texttt{$x$} with the 
+named expression (in this case \texttt{$exp_1$}). 
+\end{mydef}
+
+A quick check reveals that this does not affect the 
+outcome of the examples that the previous definition 
+substituted correctly. In addition, this definition of 
+substitution reduces 
+\texttt{Let x = 5 in x + Let x = 3 in 10} to 
+\texttt{Let x = 5 in 5 + Let x = 3 in 10}. 
+
+Let's consider a closely related expression 
+\texttt{Let x = 5 in x + Let x = 3 in x}. Think 
+a little bit. What should the value of this 
+expression? Hopefully, we can agree that the 
+value of this program is 8 )the left \texttt{x} in the 
+addition evaluates to \texttt{5}, the right 
+\texttt{x} is given the value \texttt{3}, by the inner 
+\texttt{Let}, so the sum is \texttt{8}). The refined substitution 
+algorithm, however, converts this expression into 
+\texttt{Let x = 5 in 5 + Let x = 3 in 5}, which, 
+when evaluated, yields \texttt{10}. 
+
+What went wrong here? Our substitution algorithm 
+respected binding instances, but not their 
+scope. In the sample expression, the \texttt{Let} introduces 
+a new scope for the inner \texttt{x}. The scope of the 
+outer \texttt{x} is \emph{shadowed} or \emph{masked} 
+by the inner binding. Because substitution doesn't 
+recognize this possibility, it incorrectly substitutes 
+the inner \texttt{x}. 
+
+\begin{mydef}[Substitution, take 2]{def:substitution2}
+Given an expression like $Let\ x =\ exp_1\ in\ exp_2$,
+the components of the \texttt{Let} expression are the 
+identifier \texttt{$x$}, the named expression \texttt{$exp_1$}, 
+and expression body \texttt{$exp_2$}. To substitute 
+the identifier \texttt{$x$} in the expression body \texttt{$exp_2$} 
+with the named expression \texttt{$exp_1$}, replace all identifiers 
+in the expression body which are not binding instances and 
+that have the name \texttt{$x$} with the 
+named expression (in this case \texttt{$exp_1$}), unless 
+the identifier is in a scope different from that 
+introduced by \texttt{x}. 
+\end{mydef}
+
+While this rule avoids the faulty substitution we have 
+discussed earlier, it has the following effect: 
+after substitution, the expression \texttt{Let x = 5 in x + Let y = 3 in x} 
+becomes \texttt{Let x = 5 in 5 + Let y = 3 in x}. The inner expression 
+should result in an error, because \texttt{x} has no value. 
+Once again, substitution has changed a correct program into 
+an incorrect one! 
+
+Let's understand what went wrong. Why didn't we substitute 
+the inner \texttt{x}? Substitution halts at 
+the \texttt{Let} because, by definition, every 
+\texttt{Let} introduces a new scope, which we said 
+should delimit substitution. But this 
+\texttt{Let} contains an instance of \texttt{x}, which we 
+very much want substituted! So which is it---substitute 
+within nested scopes or not? Actually, the two examples 
+above should reveal that our latest definition 
+for substitution, which might have seemed sensible at first 
+blush, is too draconian: it rules out substitution 
+within \emph{any} nested scopes. 
+
+
+\begin{mydef}[Substitution, take 2]{def:substitution2}
+Given an expression like $Let\ x =\ exp_1\ in\ exp_2$,
+the components of the \texttt{Let} expression are the 
+identifier \texttt{$x$}, the named expression \texttt{$exp_1$}, 
+and expression body \texttt{$exp_2$}. To substitute 
+the identifier \texttt{$x$} in the expression body \texttt{$exp_2$} 
+with the named expression \texttt{$exp_1$}, replace all identifiers 
+in the expression body which are not binding instances and 
+that have the name \texttt{$x$} with the 
+named expression (in this case \texttt{$exp_1$}), except within 
+\emph{nested scopes of} \texttt{x}. 
+\end{mydef}
+ 
+Finally, we have a version of substitution that works. A different, 
+more succinct way of phrasing this definition is
+
+
+\begin{mydef}[Substitution, take 5]{def:substitution2}
+Given an expression like $Let\ x =\ exp_1\ in\ exp_2$,
+the components of the \texttt{Let} expression are the 
+identifier \texttt{$x$}, the named expression \texttt{$exp_1$}, 
+and expression body \texttt{$exp_2$}. To substitute 
+the identifier \texttt{$x$} in the expression body \texttt{$exp_2$} 
+with the named expression \texttt{$exp_1$}, replace all 
+free instances of \texttt{x} in the expression body with 
+the named expression (in this case, $exp_1$).
+\end{mydef}
+
+Recall that we are still defining substitution, not 
+evaluation. Substitution is just an algorithm 
+defined over expressions, independent of any use in an 
+evaluator. It is the calculator's job to invoke substitution 
+as many times as necessary to reduce a program down to an 
+answer. That is, substitution simply converts 
+\texttt{Let x = 5 in x + Let y = 3 in x} into 
+\texttt{Let x = 5 in 5 + Let y = 3 in 5}. Reducing this to 
+an actual value is the task of the rest of the calculator. Phew! 
+Just to be sure we understand this, let's express it in the form 
+of a function. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mbox{\onelinecomment  substitutes the first argument (x) by the second argument (v) }{}\<[E]%
+\\
+\>[B]{}\mbox{\onelinecomment  in the free occurrences of the let expression body (the third }{}\<[E]%
+\\
+\>[B]{}\mbox{\onelinecomment  argument of the function). the resulting expression must not have }{}\<[E]%
+\\
+\>[B]{}\mbox{\onelinecomment  any free occurrence of the first argument.  }{}\<[E]%
+\\
+\>[B]{}\Varid{subst}\mathbin{::}\Conid{Id}\to \Conid{LAE}\to \Conid{LAE}\to \Conid{LAE}{}\<[E]%
+\\
+\>[B]{}\Varid{subst}\;\anonymous \;\anonymous \;(\Conid{Num}\;\Varid{n})\mathrel{=}\Conid{Num}\;\Varid{n}{}\<[E]%
+\\
+\>[B]{}\Varid{subst}\;\Varid{x}\;\Varid{v}\;(\Conid{Add}\;\Varid{lhs}\;\Varid{rhs})\mathrel{=}\Conid{Add}\;(\Varid{subst}\;\Varid{x}\;\Varid{v}\;\Varid{lhs})\;(\Varid{subst}\;\Varid{x}\;\Varid{v}\;\Varid{rhs}){}\<[E]%
+\\
+\>[B]{}\Varid{subst}\;\Varid{x}\;\Varid{v}\;(\Conid{Sub}\;\Varid{lhs}\;\Varid{rhs})\mathrel{=}\Conid{Sub}\;(\Varid{subst}\;\Varid{x}\;\Varid{v}\;\Varid{lhs})\;(\Varid{subst}\;\Varid{x}\;\Varid{v}\;\Varid{rhs}){}\<[E]%
+\\
+\>[B]{}\Varid{subst}\;\Varid{x}\;\Varid{v}\;(\Conid{Let}\;\Varid{i}\;\Varid{e1}\;\Varid{e2})\mathrel{=}\bot {}\<[E]%
+\\
+\>[B]{}\Varid{subst}\;\Varid{x}\;\Varid{v}\;(\Conid{Ref}\;\Varid{i})\mathrel{=}\bot {}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+ 
+The \texttt{subst} function is defined in terms of 
+\emph{pattern matching}. In the first case, a substitution 
+of any identifier by any named expression within 
+a \texttt{Num n} expression body actually returns 
+the expression body. When the message body 
+is an expression like \texttt{Add e1 e2} or 
+\texttt{Sub e1 e2} we return either and \texttt{Add} 
+or a \texttt{Sub} expression, respectively, though 
+having as sub expressions recursive calls to the 
+\texttt{subst} function on their respective 
+sub expressions \texttt{e1} and \texttt{e2}. Based on 
+the previous definitions, you should implement 
+the case for \texttt{subst} on \texttt{Let} expressions. 
+This is the most interesting case. Finally, 
+substituting a \texttt{Ref i} expression have 
+to deal with two new situations. The first, 
+we are trying to substitute the identifier \texttt{x} 
+by the named expression \texttt{v} within a \texttt{Ref x}. 
+In this case, we just return \texttt{v}. In the second, 
+we are trying to substitute within a \texttt{Ref i}, where 
+\texttt{x != i}, and thus we return \texttt{Ref i}---there 
+is no substitution to perform in this case. 
+
+\subsection{Calculating with \texttt{Let}}
+
+We have finally defined substitution, but we still 
+have not specified how we will use it to reduce 
+expressions to answers. To do this, we must 
+modify our calculator. Specifically, we must add 
+rules for our two new source language syntactic 
+constructs: \texttt{Let} and \texttt{Ref}. 
+
+\begin{itemize}
+\item To evaluate \texttt{Let} expressions, we {\bf first calculate} the 
+named expression and then substitutes identifier by its value 
+in the body of the \texttt{Let} 
+expression. 
+
+\item How about identifiers? Well any identifier that is in the scope of 
+a \texttt{Let} expression must be replaced with a value when the 
+calculator encounters that identifiers binding instance. Consequently, 
+the purpose statement of \emph{subst} said there would be no free 
+instances of the identifier given as an argument left in the 
+result. In other words, \emph{subst} replaces identifiers with 
+values before the calculator ever finds them. As a result, any 
+\emph{as-yet-unsubstituted} identifier must be free in the whole 
+program. The calculator can't assign a value to a free identifier, 
+so it halts with an error. 
+\end{itemize}
+
+Please, considering the implementation of the \texttt{calc} function 
+for \ae, implement a new function (also named \texttt{calc}) for \lae. Consider 
+the following test cases. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{calc}\mathbin{::}\Conid{LAE}\to \Conid{Integer}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{calc}\mathrel{=}\bot {}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mbox{\onelinecomment  some HUnit test cases to better understand the calc semantics}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{exp1},\Varid{exp2},\Varid{exp3},\Varid{exp4}\mathbin{::}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\Varid{exp1}\mathrel{=}\text{\tt \char34 Num~5\char34}{}\<[E]%
+\\
+\>[B]{}\Varid{exp2}\mathrel{=}\text{\tt \char34 Add~(Num~5)~(Num~5)\char34}{}\<[E]%
+\\
+\>[B]{}\Varid{exp3}\mathrel{=}\text{\tt \char34 Let~\char92 \char34 x\char92 \char34 ~(Add~(Num~5)~(Num~5))~(Add~(Ref~\char92 \char34 x\char92 \char34 )~(Ref~\char92 \char34 x\char92 \char34 ))\char34}{}\<[E]%
+\\
+\>[B]{}\Varid{exp4}\mathrel{=}\text{\tt \char34 Let~\char92 \char34 x\char92 \char34 ~(Num~5)~(Let~\char92 \char34 y\char92 \char34 ~(Ref~\char92 \char34 x\char92 \char34 )~(Ref~\char92 \char34 y\char92 \char34 ))\char34}{}\<[E]%
+\\
+\>[B]{}\Varid{exp5}\mathrel{=}\text{\tt \char34 Let~\char92 \char34 x\char92 \char34 ~(Num~5)~(Let~\char92 \char34 x\char92 \char34 ~(Ref~\char92 \char34 x\char92 \char34 )~(Ref~\char92 \char34 x\char92 \char34 ))\char34}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{tc01}\mathrel{=}\Conid{TestCase}\;(\Varid{assertEqual}\;\text{\tt \char34 tc01\char34}\;(\Varid{calc}\;(\Varid{parse}\;\Varid{exp1}))\;\mathrm{5}){}\<[E]%
+\\
+\>[B]{}\Varid{tc02}\mathrel{=}\Conid{TestCase}\;(\Varid{assertEqual}\;\text{\tt \char34 tc02\char34}\;(\Varid{calc}\;(\Varid{parse}\;\Varid{exp2}))\;\mathrm{10}){}\<[E]%
+\\
+\>[B]{}\Varid{tc03}\mathrel{=}\Conid{TestCase}\;(\Varid{assertEqual}\;\text{\tt \char34 tc03\char34}\;(\Varid{calc}\;(\Varid{parse}\;\Varid{exp3}))\;\mathrm{20}){}\<[E]%
+\\
+\>[B]{}\Varid{tc04}\mathrel{=}\Conid{TestCase}\;(\Varid{assertEqual}\;\text{\tt \char34 tc04\char34}\;(\Varid{calc}\;(\Varid{parse}\;\Varid{exp4}))\;\mathrm{5}){}\<[E]%
+\\
+\>[B]{}\Varid{tc05}\mathrel{=}\Conid{TestCase}\;(\Varid{assertEqual}\;\text{\tt \char34 tc05\char34}\;(\Varid{calc}\;(\Varid{parse}\;\Varid{exp5}))\;\mathrm{5}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{parse}\mathbin{::}\Conid{String}\to \Conid{LAE}{}\<[E]%
+\\
+\>[B]{}\Varid{parse}\mathrel{=}\Varid{read}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\chapter{Functions and Functions as Values} 
+
+This chapter introduces several concepts 
+related to function declaration, the scope 
+of functions, and a classification of 
+functions. 
+
+\section{An Introduction to Functions}
+
+In the previous chapter, we have 
+added identifiers and and the ability 
+to name expressions to the language. 
+Much of the time, though, simply 
+being able to name an expression isn't 
+enough: the expression's value 
+is going to depend on the context of 
+its use. That means the expression needs 
+to be parameterized and, thus, it 
+must be a \emph{function}. 
+
+Dissecting a \texttt{Let} expression is 
+a useful exercise in helping us design 
+functions. Consider the program
+
+\begin{tabbing}\tt
+~Let~x~\char61{}~5~in~x~\char43{}~3
+\end{tabbing}
+
+In this program, the expression \texttt{x + 3} is parameterized 
+over the value of \texttt{x}. In that sense, it is just like 
+a function definition: in mathematical notation we might 
+write: 
+
+\begin{eqnarray*}
+f(x) & = & x + 3
+\end{eqnarray*}  
+
+Having named and def ind $f$, what do we do with it? The 
+\texttt{LAE} program introduces \texttt{x} and than immediately 
+binds it to \texttt{5}. The way we bind a function's argument 
+to a value is to apply it. Thus, it is as if we wrote: 
+
+\begin{eqnarray*}
+f(x) & = & x + 3;\ f(5)
+\end{eqnarray*}
+ 
+In general, functions are useful entities to have in programming 
+languages, and it would be instructive to model them. 
+
+\subsection{Enriching the Languages with Functions}
+
+To add functions to \texttt{LAE}, we must define their abstract syntax. 
+In particular, we must both describe a \emph{function definition} (declaration) and 
+provide a means for its \emph{application} or \emph{invocation}. To do the 
+latter, we must add a new kind of expression, resulting in the language 
+\texttt{F1LAE}. We will presume, as a simplification, that functions consume 
+only one argument. This expression language has the following \bnf. 
+
+\begin{tabbing}\tt
+~~\char60{}F1LAE\char62{}~\char58{}\char58{}\char61{}~Int~Num~\\
+\tt ~~~~~~~~~~\char124{}~Add~\char60{}F1LAE\char62{}~\char60{}F1LAE\char62{}\\
+\tt ~~~~~~~~~~\char124{}~Sub~\char60{}F1LAE\char62{}~\char60{}F1LAE\char62{}~\\
+\tt ~~~~~~~~~~\char124{}~Let~\char60{}Id\char62{}~\char60{}F1LAE\char62{}~\char60{}F1LAE\char62{}\\
+\tt ~~~~~~~~~~\char124{}~Ref~\char60{}Id\char62{}\\
+\tt ~~~~~~~~~~\char124{}~App~\char60{}Id\char62{}~\char60{}F1LAE\char62{}~
+\end{tabbing}
+
+The expression representing the argument supplied to the 
+function is known as the actual parameter. To capture this 
+new language, we again have to declare a Haskell 
+data type.  
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{12}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{module}\;\Conid{F1LAE}\;\mathbf{where}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{import}\;\Conid{\Conid{Test}.HUnit}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{type}\;\Conid{Id}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Name}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{FormalArg}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Value}\mathrel{=}\Conid{Integer}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{data}\;\Conid{Exp}\mathrel{=}\Conid{Num}\;\Conid{Integer}{}\<[E]%
+\\
+\>[B]{}\hsindent{12}{}\<[12]%
+\>[12]{}\mid \Conid{Add}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{12}{}\<[12]%
+\>[12]{}\mid \Conid{Sub}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{12}{}\<[12]%
+\>[12]{}\mid \Conid{Let}\;\Conid{Id}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{12}{}\<[12]%
+\>[12]{}\mid \Conid{Ref}\;\Conid{Id}{}\<[E]%
+\\
+\>[B]{}\hsindent{12}{}\<[12]%
+\>[12]{}\mid \Conid{App}\;\Conid{Name}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\mathbf{deriving}\;(\Conid{Read},\Conid{Show},\Conid{Eq}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Now, let's study function declaration. A function declaration has three 
+components: the name of the function, the names of its arguments 
+(known as the formal parameters), and the function's body. 
+(The function's parameters might have types, which we will 
+discuss later in this book). For now, we will presume 
+that functions consume only one argument. A simple 
+data definition captures this. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{FunDec}\mathrel{=}\Conid{FunDec}\;\Conid{Name}\;\Conid{FormalArg}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\mathbf{deriving}\;(\Conid{Read},\Conid{Show},\Conid{Eq}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Using this definition, one might declare a standard function 
+for doubling its argument as: 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{double}\mathbin{::}\Conid{FunDec}{}\<[E]%
+\\
+\>[B]{}\Varid{double}\mathrel{=}\Conid{FunDec}\;\text{\tt \char34 double\char34}\;\text{\tt \char34 x\char34}\;(\Conid{Add}\;(\Conid{Ref}\;\text{\tt \char34 x\char34})\;(\Conid{Ref}\;\text{\tt \char34 x\char34})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Now we are ready to write the calculator, which we will 
+call \emph{interp}---short for interpreter-rather than 
+\emph{calc} to reflect the fact that our language 
+has grown beyond arithmetic. The interpreter must 
+consume two arguments: the expression to evaluate 
+and the set of known function declarations. Most of 
+the rules of \texttt{LAE} remain the same, 
+so we can focus on the new rule. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{interp}\mathbin{::}\Conid{Exp}\to [\mskip1.5mu \Conid{FunDec}\mskip1.5mu]\to \Conid{Value}{}\<[E]%
+\\
+\>[B]{}\Varid{interp}\mathrel{=}\bot {}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+The rule for an application first looks up 
+the named function. If this access succeeds, 
+then interpretation proceeds in the body 
+of the function after first substituting 
+its formal parameter with the (interpreted) 
+value of the actual parameter. We can 
+see the result using GHCi. 
+
+\subsection{The scope of substitution}
+
+Suppose we ask our interpreter to evaluate 
+the expression 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{app1}\mathbin{::}\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\Varid{app1}\mathrel{=}\Conid{App}\;\text{\tt \char34 f\char34}\;(\Conid{Num}\;\mathrm{10}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+In the presence of the solitary function definition 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{f}\mathbin{::}\Conid{FunDec}{}\<[E]%
+\\
+\>[B]{}\Varid{f}\mathrel{=}\Conid{FunDec}\;\text{\tt \char34 f\char34}\;\text{\tt \char34 n\char34}\;(\Conid{App}\;\text{\tt \char34 n\char34}\;(\Conid{Ref}\;\text{\tt \char34 n\char34})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+What should happen? Should the interpreter try to substitute 
+the $n$ in the function position of the application 
+with the number $10$, than complains that no such function 
+can be found (or even that function lookup fundamentally 
+fails because the names of the functions must be identifiers, 
+not numbers)? Or should the interpreter decide that function 
+names and function arguments live in two different ``spaces'', 
+and let the context determines in which space to lookup a name? Languages 
+like Scheme take the former approach: the name of a function 
+can be bound to a value in a local scope, thereby rendering 
+the function inaccessible through that name. This later 
+strategy is known as employing namespaces and languages 
+like Common Lisp adopt it. 
+ 
+\subsection{The Scope of Function Definitions} 
+
+Suppose our \emph{definition list} contains multiple function 
+declarations. How do these interact with one another? 
+For instance, suppose we evaluate the following 
+input \texttt{eval app2 [g, h]}, where  
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{app2}\mathbin{::}\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\Varid{app2}\mathrel{=}\Conid{App}\;\text{\tt \char34 f\char34}\;(\Conid{Num}\;\mathrm{5}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{g}\mathbin{::}\Conid{FunDec}{}\<[E]%
+\\
+\>[B]{}\Varid{g}\mathrel{=}\Conid{FunDec}\;\text{\tt \char34 g\char34}\;\text{\tt \char34 n\char34}\;(\Conid{App}\;\text{\tt \char34 h\char34}\;(\Conid{Add}\;(\Conid{Ref}\;\text{\tt \char34 n\char34})\;(\Conid{Num}\;\mathrm{5}))){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{h}\mathbin{::}\Conid{FunDec}{}\<[E]%
+\\
+\>[B]{}\Varid{h}\mathrel{=}\Conid{FunDec}\;\text{\tt \char34 h\char34}\;\text{\tt \char34 m\char34}\;(\Conid{Sub}\;(\Conid{Ref}\;\text{\tt \char34 m\char34})\;(\Conid{Num}\;\mathrm{1})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+What does the mentioned evaluation do? The main expression 
+applies $g$ to $5$. The definition of $g$, in turn, invokes 
+function $h$. Should $g$ be able to invoke $h$? Should the 
+invocation fail because $h$ is defined after $g$ in the list 
+of definitions? What if there are multiple bindings 
+for a given function's name? We will expect this evaluation 
+to reduce to $9$. That is, we employ the more natural interpretation 
+that each function can ``see'' every function's definition, 
+and the natural assumption that each name is bound at most 
+once so we don't need to disambiguate between definitions. 
+It is, however, possible to define more sophisticated 
+scopes. 
+
+\begin{Exercise}
+Implement the \texttt{interp} function as 
+specified above. 
+\end{Exercise} 
+
+\begin{Exercise}
+If a function can invoke every defined function, that 
+means it can also invoke itself. This is currently of 
+limited value because our \texttt{F1LAE} language lacks 
+a harmonious way of terminating recursion. Implement a 
+simple conditional construct (\texttt{if0}) which succeeds 
+if the term in the first position evaluates to zero, 
+and write interesting recursive functions in this language.  
+\end{Exercise}  
+
+\section{First Class Functions} 
+
+There is a similarity between a \texttt{Let} expression 
+and a function definition applied immediately to a value. 
+For instance, not that: 
+
+\begin{tabbing}\tt
+~Let~x~\char61{}~5~in~x~\char43{}~3
+\end{tabbing}
+
+\noindent is essentially the same as $f(x) = x + 3; f(5)$. Actually, 
+that is not quite right: in the math equation, we give the function 
+a name ($f$), whereas there is no identifier named $f$ anywhere 
+in the \texttt{Let} expression above. We can, however, rewrite 
+the mathematical formulation as $f = \lambda x . x + 3; f(5)$, 
+which can then be rewritten as $(\lambda x . x + 3)(5)$ to get 
+rid of the unnecessary name $f$. Notice, however, that our 
+language \texttt{F1LAE} does not permit anonymous functions 
+(a concept that currently is also present in 
+imperative languages like Java, Scala, and Python, for instance) 
+of the style we have used above. Because such a functions 
+are useful in their own right, we now extend our study of 
+functions. 
+
+\subsection{A Taxonomy of Functions} 
+
+The translation of \texttt{Let} into mathematical 
+notation exploits two features of functions: the 
+ability to create anonymous functions, and the ability 
+to define functions anywhere in the program (in this case, 
+in the function position of a Lambda application). Not 
+every programming language offers one or both of these 
+capabilities. There is, therefore, a taxonomy that 
+governs these different features, which we can use 
+when discussing what kind of functions a language 
+provides. The taxonomy is as what follows.
+
+\begin{description}
+\item [first-order] Functions are not values in the language. They 
+can only be defined in a designated portion of the program, where 
+they must be given names for use in the remainder of the program. The 
+functions in \texttt{F1LAE} are of this nature, which explains the 
+\texttt{1} in the name of the language. 
+
+\item [higher-order] Functions can return other functions as values. 
+
+\item [first-class] Functions are values with all the rights of 
+other values. In particular, they can be supplied as the value 
+arguments to functions, returned by functions as answers, and 
+stored in data structures. 
+
+\end{description}
+
+\subsection{Enriching \texttt{F1LAE} with First-Class Functions} 
+
+To add \emph{first-class functions} to \texttt{F1LAE}, we must 
+proceed as usual, by first defining its concrete and 
+abstract syntaxe trees. First, let us examine some concrete programs: 
+
+\begin{tabbing}\tt
+~~\char40{}\char92{}x~\char46{}~x~\char43{}~4\char41{}~5~
+\end{tabbing}
+
+\noindent This program (consisting of a sole expression) defines a function 
+that adds $4$ to its argument and immediately applies this function 
+to $5$, resulting in the value $9$. This one
+
+\begin{tabbing}\tt
+~~Let~double~\char61{}~\char40{}\char92{}x~\char46{}~x~\char43{}~x\char41{}~\\
+\tt ~~~in~\char40{}double~10\char41{}~\char43{}~\char40{}double~5\char41{}
+\end{tabbing}
+
+\noindent evaluates to $30$. The program defines a function, 
+binds it to \texttt{double}, then uses that name twice in 
+slightly different contexts (i.e., it instantiates the formal 
+parameter with different actual parameters). From these 
+examples, it should be clear that we must introduce two 
+new kinds of expressions: anonymous functions and 
+anonymous function applications. Here is the revised 
+\bnf corresponding to these examples. 
+
+\begin{grammar}
+ <Name> ::= <Id>
+ 
+ <Arg> :: = <Id> 
+
+ <FunDec> ::= `def' <Name> <Arg> `=' <FLAE> 
+ 
+ <FLAE> ::= <Num> 
+     \alt Add <FLAE> <FLAE>
+     \alt Sub <FLAE> <FLAE> 
+     \alt Let <Id> <FLAE> <FLAE>
+     \alt Ref <Id>
+     \alt App <Name> <FLAE> 
+     \alt $\lambda$ <Arg> `.' <FLAE>
+     \alt AppLambda <FLAE> <FLAE> 
+\end{grammar}
+
+In this language, it is possible to declare 
+both named functions (using the function declarations) 
+and anonymous functions (using the lambda 
+abstractions), which might appear anywhere we 
+are expecting a \texttt{FLAE} expression (in particular, 
+in the first component of a lambda application). Therefore, instead 
+of just the name of a function, programmers can write an arbitrary 
+expression that must be evaluated to obtain the function 
+to apply. The corresponding abstract syntax is:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{11}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{module}\;\Conid{F2LAE}\;\mathbf{where}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{type}\;\Conid{Id}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Name}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{FormalArg}\mathrel{=}\Conid{String}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{type}\;\Conid{Value}\mathrel{=}\Conid{Exp}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{data}\;\Conid{FunDec}\mathrel{=}\Conid{FunDec}\;\Conid{Name}\;\Conid{FormalArg}\;\Conid{Exp}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{data}\;\Conid{Exp}\mathrel{=}\Conid{Num}\;\Conid{Integer}{}\<[E]%
+\\
+\>[B]{}\hsindent{11}{}\<[11]%
+\>[11]{}\mid \Conid{Add}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{11}{}\<[11]%
+\>[11]{}\mid \Conid{Sub}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{11}{}\<[11]%
+\>[11]{}\mid \Conid{Let}\;\Conid{Id}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{11}{}\<[11]%
+\>[11]{}\mid \Conid{Ref}\;\Conid{Id}{}\<[E]%
+\\
+\>[B]{}\hsindent{11}{}\<[11]%
+\>[11]{}\mid \Conid{App}\;\Conid{Name}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{11}{}\<[11]%
+\>[11]{}\mid \Conid{Lambda}\;\Conid{Id}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{11}{}\<[11]%
+\>[11]{}\mid \Conid{AppLambda}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+To define our interpreter, we must think a little about 
+what kinds of values it consumes and produces. Naturally, 
+the interpreter consumes values of \texttt{FLAE} expressions 
+(and a list of function declarations). What does it 
+produces? Clearly, a program that meets \texttt{FLAE} 
+must yields numbers. As we have seen above, 
+some programs that use functions and applications 
+also evaluate to numbers. How about a program 
+that consists solely of a function? That is, 
+what is the value of the program \texttt{$(\lambda x . x)$}? It 
+clearly does not represent a number. It might be 
+a function that, when applied to a numeric argument, 
+produces a number, but it is not itself a number. We 
+instead realized from this that \emph{anonymous functions are also 
+values} that may be the result of a computation. 
+
+We could design an elaborate representation for function values, but for 
+now, we will remain modest. We will let the function evaluate to its 
+abstract syntax representation (i.e., a \texttt{Lambda} structure). For consistency, 
+we will also let numbers evaluate to a  \texttt{Num} structure. Thus, the 
+result of evaluating \texttt{$(\lambda x . x)$} would be the value \texttt{Lambda ``x'' (Ref ``x'')}.
+
+Now we are ready to write the interpreter. We must pick a type for 
+the value that \emph{interp} returns. Since we have decided 
+to represent function and number answers using the abstract 
+syntax, it makes sense to use \texttt{FLAE} expressions, with 
+the caveat that only two kinds of expressions can appear in 
+the output: numbers and functions. Our first interpreter will 
+use explicit substitution, to offer a direct comparison with 
+the interpreters discussed before. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{interp}\mathbin{::}\Conid{Exp}\to [\mskip1.5mu \Conid{FunDec}\mskip1.5mu]\to \Conid{Value}{}\<[E]%
+\\
+\>[B]{}\Varid{interp}\mathrel{=}\bot {}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\section{Making Let Expressions Redundant} 
+
+Now that we have functions as first class citizens, we can combine 
+lambda abstractions and lambda applications to recover the behaviour 
+of \texttt{Let} expressions as a special case. Every time we encounter 
+an expression of the form \texttt{Let var = named in body} we can 
+replace it with \texttt{$(\lambda var\ .\ body)\ named$} and obtain 
+the same effect. The result of this translation reduces some boilerplate 
+code that is necessary to interpret the application of lambda and 
+let expressions. 
+
+\begin{Exercise}
+Implement a pre-processor that performs this translation. 
+\end{Exercise} 
+
+\section{Implementing Functions Using Deferred Substitutions} 
+
+Let's examine the process of interpreting the following small 
+program. 
+
+\begin{minipage}{.5\textwidth}
+\begin{tabbing}\tt
+~Let~x~\char61{}~3~\\
+\tt ~~in~Let~y~\char61{}~4\\
+\tt ~~~in~Let~z~\char61{}~5~\\
+\tt ~~~~in~x~\char43{}~y~\char43{}~z
+\end{tabbing}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+\begin{eqnarray*}
+& = & Let\ y = 4\ in\ Let\ z = 5\ in\ 3 + y + z\ (subst) \\ 
+& = & Let\ z = 5\ in\ 3 + 4 + z\ (subst) \\
+& = & 3 + 4 + 5\ (subst) \\
+& = & 12\ (arithmetic)  
+\end{eqnarray*}
+\end{minipage}
+
+\noindent On the right is the sequence of evaluation steps. To reduce 
+it to an arithmetic problem, the interpreter had to apply substitution 
+three times: once for each \texttt{Let} expression. This is slow! How slow? 
+Well, if the program has size $n$ (measured in abstract syntax tree nodes), 
+than each substitution \emph{traverses} the rest of the program once, making 
+the complexity of this interpreterter at least $O(n^2)$. That seems rather 
+wasteful, surely we can do better. 
+
+How will avoid computational redundancy? We should create and use 
+a \emph{repository of deferred substitutions}. Concretly, here 
+is the idea. Initially, we have no substitutions to perform, so the 
+repository is empty. Every time we encounter a substitution (in the form 
+of a \texttt{Let}  or \texttt{Application}), we augment the repository 
+with one more entry, recording the identifier's name and the 
+value (if \emph{eager}) or expression (if \emph{lazy}) it should
+eventually be substituted with. We continue to evaluate without 
+actually performing the substitution. 
+
+This strategy breaks a key invariant we had established earlier, which 
+is that any identifier the interpreter encounters is of necessity 
+free---in the case it had been bound, it would have been replaced 
+by substitution. Because we are no longer using substitution, 
+we will encounter bound identifiers during interpretation. How do 
+will handle them? We must consult the repository in order to 
+substitute them. Our new language \textsc{F3LAE} is quite 
+similar to the previous one 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{10}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{module}\;\Conid{F3LAE}\;\mathbf{where}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{type}\;\Conid{Name}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{FormalArg}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Id}\mathrel{=}\Conid{String}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{data}\;\Conid{FunDec}\mathrel{=}\Conid{FunDec}\;\Conid{Name}\;\Conid{FormalArg}\;\Conid{Exp}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{data}\;\Conid{Exp}\mathrel{=}\Conid{Num}\;\Conid{Integer}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\mid \Conid{Add}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\mid \Conid{Sub}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\mid \Conid{Let}\;\Conid{Id}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\mid \Conid{App}\;\Conid{Name}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\mid \Conid{Lambda}\;\Conid{FormalArg}\;\Conid{Exp}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\mid \Conid{LambdaApp}\;\Conid{Exp}\;\Conid{Exp}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\noindent though we have to declare a new type for representing 
+our repository of deferred substitutions. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{DefrdSub}\mathrel{=}[\mskip1.5mu (\Conid{Id},\Conid{Value})\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Several situations must be considered when implementing 
+the \texttt{interp} function for \textsc{F3LAE}. For 
+instance, consider the following test case
+
+\begin{tabbing}\tt
+~Let~x~\char61{}~3~\\
+\tt ~~in~Let~f~\char61{}~\char40{}\char92{}y~\char46{}~y~\char43{}~x\char41{}~\\
+\tt ~~~~in~Let~x~\char61{}~5~\\
+\tt ~~~~~~in~f~4
+\end{tabbing}
+
+\noindent Depending on the evaluation strategy and 
+scope resolution, its evaluation must result either 
+in 7 (static scope) or 9 (dynamic scope). In the later 
+case, the value of $x$ within the function definition 
+depends on the context of application of $f$, not 
+on the scope of its definition.
+
+That is, to properly defer substitution, the value of a 
+function should be not only its definition, but also 
+the substitutions that were due to be performed on 
+it. Therefore, we must define a new datatype for the interpreter's 
+return value, which attaches the definition-time repository 
+to every function value. Our \texttt{Value} datatype 
+is either a \emph{numeric value} or a \emph{closure}, 
+a kind of function definition that comes together 
+with the list of deferred substitutions that appear 
+until its definition. We call this constructed 
+value a \emph{closure} because it ``closes'' the 
+function body of lambda expressions 
+over the substitutions that are waiting to 
+occur. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{12}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{Value}\mathrel{=}\Conid{NumValue}\;\Conid{Integer}{}\<[E]%
+\\
+\>[B]{}\hsindent{12}{}\<[12]%
+\>[12]{}\mid \Conid{Closure}\;\Conid{FormalArg}\;\Conid{Exp}\;\Conid{DefrdSub}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+When the interpreter encounters a function 
+application, it must ensure that the function's 
+pending substitutions are not forgotten. It must 
+however, ignore the substitutions pending at the 
+location of the invocation, for that is 
+precisely what led us to dynamic instead of 
+static scope. It must instead use the substitutions 
+of the invocation location to convert the function 
+and argument into values, hope that the 
+function expression evaluated to a closure, then 
+proceed with evaluating the body of the 
+function employing the repository of 
+deferred substitutions stored in the closure. 
+
+\begin{Exercise}
+Implement the interpreter function for 
+F3LAE, considering the following 
+specification. 
+\end{Exercise} 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{interp}\mathbin{::}\Conid{Exp}\to \Conid{DefrdSub}\to [\mskip1.5mu \Conid{FunDec}\mskip1.5mu]\to \Conid{Value}{}\<[E]%
+\\
+\>[B]{}\Varid{interp}\mathrel{=}\bot {}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\end{document}
