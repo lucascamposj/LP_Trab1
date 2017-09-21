@@ -50,7 +50,7 @@ interp (Lambda v b) subs decs  = Closure v exp subs
 interp (LambdaApp e1 e2) subs decs = interp e ((foa,w) : decsclo) -- Terminada ( falta testar ) 
   where
     w = interp e2 subs decs
-    (Closuse foa e decsclo) = interp e1 subs decs
+    (Closure foa e decsclo) = interp e1 subs decs
 
 interp (App n e) subs decs =
   let f = lookupF n decs
