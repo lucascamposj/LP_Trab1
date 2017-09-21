@@ -10,7 +10,7 @@ data FunDec = FunDec Name FormalArg Exp
 
 
 data Value = NumValue Integer
-         | Closure FormalArg Value DefrdSub  
+        | Closure FormalArg Exp DefrdSub  
  deriving(Read, Show, Eq)
 
 data Exp = Num Integer
@@ -22,6 +22,7 @@ data Exp = Num Integer
          | Lambda FormalArg Exp
          | LambdaApp Exp Exp 
  deriving(Read, Show, Eq)
+
 -- INTERPRETE
 
 interp :: Exp -> DefrdSub -> [FunDec] -> Value
@@ -37,17 +38,19 @@ interp (Let x e1 e2) subs decs = interp e2 ((x,exp):subs) decs
 interp (Ref v) subs _			= 
   let r = lookupC v subs
   in case r of
-      (Nothing) -> error "Variable not declared"
-      (Just (Closure  f x s)) -> NumValue x
+      (Nothing) -> error "Variable not declared" -- Caso não ache a variavel na liste 
+      (Just f ) -> f                                    --
 
-interp (Lambda v b) subs decs    = Closure v exp subs
+interp (Lambda v b) subs decs  = Closure v exp subs
+
+-- interp (LambdaApp e1 e2) subs decs = interp e2 subs decs
+--   where 
+-- 	(Lambda x e) = interp e1 subs decs
+-- 	sub          = (subst x e2 e decs)  
+interp (LambdaApp e1 e2) subs decs = interp e ((foa,w) : decsclo) -- Terminada ( falta testar ) 
   where
-  	exp = interp b subs decs
-
-interp (LambdaApp e1 e2) subs decs = interp  sub decs 
-  where 
-	(Lambda x e) = interp e1 subs decs
-	sub          = (subst x e2 e decs)  
+    w = interp e2 subs decs
+    (Closuse foa e decsclo) = interp e1 subs decs
 
 interp (App n e) subs decs =
   let f = lookupF n decs
@@ -65,19 +68,17 @@ binOperation op e1 e2 subs decs = interp Num (op n1 n2)
 
 lookupF :: Name -> [FunDec] -> Maybe FunDec
 lookupF _ [] = Nothing 
-lookupF f (fun@(FunDec n a b):fs)
-  | f == n = Just fun
-  | otherwise = lookup f fs 
+lookupF name (fun@(FunDec n a b):fs)
+  | name == n = Just fun
+  | otherwise = lookupF name fs 
 
-lookupC :: Name -> DefrdSub -> Maybe Value
+lookupC :: Name -> DefrdSub -> Maybe Value -- Retornar somente o valor
 lookupC _ [] = Nothing 
 lookupC name (fun@(Closure func x s):cs)
   | name == func = Just fun
   | otherwise = lookup name cs
 lookupC name (NumValue value:cs)
   | name == 
-
-
 
 
 
