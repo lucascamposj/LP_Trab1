@@ -38,24 +38,24 @@ interp (Let x e1 e2) subs decs = interp e2 ((x,exp):subs) decs
 interp (Ref v) subs _ =
   let r = lookupV v subs
   in case r of
-      (Nothing) -> error "Variable not declared" -- Caso não ache a variavel na liste 
-      (Just v ) -> v                                    --
+      (Nothing) -> error "Variable not declared" -- Caso não ache a variavel na lista 
+      (Just v ) -> v                                   
 
-interp (Lambda v b) subs decs  = Closure v b subs
+interp (Lambda form_arg expression) subs decs  = Closure form_arg expression subs
 
-interp (LambdaApp e1 e2) subs decs = interp e ((foa,w) : decsclo) decs -- Terminada ( falta testar ) 
+interp (LambdaApp e1 e2) subs decs = interp e ((form_arg,expression) : decs_closure) decs -- Terminada ( falta testar ) decs_closure= lista closure
   where
-    w = interp e2 subs decs
-    (Closure foa e decsclo) = interp e1 subs decs
+    expression = interp e2 subs decs
+    (Closure form_arg e decs_closure) = interp e1 subs decs
 
-interp (App n e) subs decs = interp expf subs2 decs
+interp (App n expression) subs decs = interp expf subs2 decs
   where
-    (FunDec name fa expf) = let f = lookupF n decs
+    (FunDec name form_arg expf) = let f = lookupF n decs
                               in case f of
                                   (Nothing) -> error "Function not declared"
                                   (Just fundec) -> fundec
-    l1 = interp e subs decs
-    subs2 = ((fa,l1):subs)
+    l1 = interp expression subs decs
+    subs2 = ((form_arg,l1):subs)
 
 
 -- ESTRUCTURES
@@ -68,9 +68,9 @@ binOperation op e1 e2 subs decs = interp (Num (op n1 n2)) subs decs
 
 lookupF :: Name -> [FunDec] -> Maybe FunDec
 lookupF _ [] = Nothing 
-lookupF name (fun@(FunDec n a b):fs)
+lookupF name (fun@(FunDec n form_arg expression):fun_s) --fun_s lista funcoes [FunDec n form_arg expression]
   | name == n = Just fun
-  | otherwise = lookupF name fs 
+  | otherwise = lookupF name fun_s 
 
 
 lookupV :: Name -> DefrdSub -> Maybe Value -- Retornar somente o valor
