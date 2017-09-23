@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.6)  20 SEP 2017 10:23
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.6)  20 SEP 2017 22:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1390,11 +1390,11 @@ Overfull \hbox (10.32034pt too wide) has occurred while \output is active
  []
 
 [23]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1616.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1616.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1620.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1620.
  (./PLAI.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1616.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1616.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1620.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1620.
 
 Package rerunfilecheck Info: File `PLAI.out' has not changed.
 (rerunfilecheck)             Checksum: C9D149448D4581D33D3F533A673A0C34;1181.
@@ -1407,10 +1407,10 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 37448 strings out of 492995
- 861217 string characters out of 6132705
+ 37453 strings out of 492995
+ 861284 string characters out of 6132705
  1014875 words of memory out of 5000000
- 40362 multiletter control sequences out of 15000+600000
+ 40367 multiletter control sequences out of 15000+600000
  18250 words of font info for 70 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  69i,12n,120p,10414b,1202s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1429,7 +1429,7 @@ usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr
 local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/l
 ocal/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/lo
 cal/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on PLAI.pdf (23 pages, 246060 bytes).
+Output written on PLAI.pdf (23 pages, 246139 bytes).
 PDF statistics:
  277 PDF objects out of 1000 (max. 8388607)
  227 compressed objects within 3 object streams

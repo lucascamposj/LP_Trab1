@@ -7,7 +7,6 @@ type Var  = String
 type Name = String
 type FArg = String
 
-
 data FunDec = FunDec Id FArg Exp
   
 data Exp = Num Integer
@@ -61,7 +60,7 @@ subst x v (Lambda i e) decs
   | otherwise = Lambda i (subst x v e decs)
 
 subst x v (AppLambda e1 e2) decs = AppLambda (subst x v e1 decs) (subst x v e2 decs)
-  
+
 lookup :: Name -> [FunDec] -> Maybe FunDec
 lookup _ [] = Nothing 
 lookup f (fun@(FunDec n a b):fs)
@@ -75,7 +74,6 @@ binOperation op e1 e2 decs = Num (op n1 n2)
  where 
   (Num n1) = interp e1 decs
   (Num n2) = interp e2 decs
-  
 
 
 -- | samples
