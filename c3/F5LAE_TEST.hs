@@ -7,7 +7,7 @@ import F5LAE
 parse :: String -> Exp
 parse s = read s 
 
--- Testes da questão 2
+-- Testes da questão 4
 
 -- exp1, exp2 :: String 
 

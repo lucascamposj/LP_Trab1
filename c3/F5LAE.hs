@@ -3,11 +3,10 @@ module F5LAE where
 type Name = String  
 type FormalArg = String 
 type Id = String 
-type DefrdSub = [(Id, Value)] 
+type DefrdSub = [(Id, Value)]
 
 data FunDec = FunDec Name [FormalArg] Exp 
  deriving(Read, Show, Eq)
-
 
 data Value = NumValue Integer
         | Closure FormalArg Exp  

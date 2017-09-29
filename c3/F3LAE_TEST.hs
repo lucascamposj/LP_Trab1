@@ -42,3 +42,4 @@ tc9  = TestCase (assertEqual "tc09" (interp (exp9) [] []) (Closure "x" (Add (Ref
 tc10 = TestCase (assertString  "tc10" (interp (exp10) [] []) ("Variable not declared"))
 
 
+
