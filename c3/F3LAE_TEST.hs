@@ -42,4 +42,14 @@ tc9  = TestCase (assertEqual "tc09" (interp (exp9) [] []) (Closure "x" (Add (Ref
 tc10 = TestCase (assertString  "tc10" (interp (exp10) [] []) ("Variable not declared"))
 
 
-
+tests = TestList [ TestLabel "tc1" tc1, 
+                    TestLabel "tc2" tc2,
+                    TestLabel "tc3" tc3, 
+                    TestLabel "tc4" tc4,
+                    TestLabel "tc5" tc5, 
+                    TestLabel "tc6" tc6,
+                    TestLabel "tc7" tc7, 
+                    TestLabel "tc8" tc8,
+                    TestLabel "tc9" tc9,
+                    TestLabel "tc10" tc10
+                 ]

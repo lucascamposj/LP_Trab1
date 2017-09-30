@@ -1,0 +1,4 @@
+kafka,55677,6092,3730,git://github.com/apache/kafka.git,,AC,30,G4
+dropwizard,52238,5979,228,git://github.com/dropwizard/dropwizard.git,,EP,60,G4
+mybatis-3,77922,5729,3843,git://github.com/mybatis/mybatis-3.git,,FP,90,G4
+guice,62797,5608,873,git://github.com/google/guice.git,,FUNC,30,G4

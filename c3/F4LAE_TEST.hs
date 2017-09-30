@@ -30,3 +30,10 @@ tc3  = TestCase (assertEqual "tc3" (interp (exp3) [] []) (NumValue 5))
 tc4  = TestCase (assertEqual "tc4" (interp (exp4)[] []) (NumValue 5))
 
 tc5  = TestCase (assertEqual "tc5" (interp (exp5) [] [(FunDec "test5" ["x","y","z","p"] (Add (Ref "x") (Add (Ref "y") (Add (Ref "z") (Ref "p")))))]) (NumValue 14))
+
+tests = TestList [ TestLabel "tc1" tc1, 
+                    TestLabel "tc2" tc2,
+                    TestLabel "tc3" tc3, 
+                    TestLabel "tc4" tc4,
+                    TestLabel "tc5" tc5
+                 ]
