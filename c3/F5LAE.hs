@@ -43,7 +43,7 @@ interp (Ref v) subs _ =
 
 interp (Lambda form_arg expression) subs decs  = Closure form_arg expression
 
-interp (LambdaApp e1 e2) subs decs = interp e ((form_arg, expression) : subs) decs -- Terminada ( falta testar ) decs_closure= lista closure
+interp (LambdaApp e1 e2) subs decs = interp e ((form_arg, expression) : subs) decs -- decs_closure= lista closure
   where
     expression = interp e2 subs decs
     (Closure form_arg e) = interp e1 subs decs
